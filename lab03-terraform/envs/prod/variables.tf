@@ -5,4 +5,3 @@ variable "docker_host" {
 }
 variable "project" { type = string }
 variable "env" { type = string }
-variable "web_port" { type = number }

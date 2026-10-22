@@ -1,0 +1,56 @@
+name: terraform
+on:
+  pull_request:
+    paths:
+      - "lab03-terraform/**"
+      - ".github/workflows/terraform.yml"   # Correzione 1
+  push:
+    branches: [main]
+    paths:
+      - "lab03-terraform/**"
+      - ".github/workflows/terraform.yml"
+permissions:
+  contents: read
+env:
+  TF_VAR_docker_host: unix:///var/run/docker.sock
+  TF_VAR_project: lab
+  TF_VAR_env: dev
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: lab03-terraform/envs/dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: Formattazione
+        run: terraform fmt -check -recursive ../..         # Correzione 2
+      - name: Backend locale per la CI                      # Correzione 3
+        run: printf 'terraform {\n  backend "local" {}\n}\n' > ci_override.tf
+      - run: terraform init
+      - run: terraform validate
+      - uses: terraform-linters/setup-tflint@v4
+      - run: tflint --init && tflint --recursive
+      - uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: lab03-terraform
+          soft_fail: true
+      - run: terraform plan -no-color
+  apply:
+    if: github.ref == 'refs/heads/main'
+    needs: plan
+    runs-on: ubuntu-latest
+    environment: dev-apply
+    defaults:
+      run:
+        working-directory: lab03-terraform/envs/dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: Backend locale per la CI
+        run: printf 'terraform {\n  backend "local" {}\n}\n' > ci_override.tf
+      - run: terraform init
+      - run: terraform apply -auto-approve
+      - name: Prova che i container esistono sul runner      # Correzione 4
+        run: docker ps --format "table {{.Names}}\t{{.Ports}}"
