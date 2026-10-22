@@ -17,5 +17,5 @@ module "webapp" {
   source    = "../../modules/webapp"
   project   = var.project
   env       = var.env
-  instances = { site = 8081, api = 8082, docs = 8083 }
+  instances = { site = 8081, api = 8092, docs = 8083 }
 }
