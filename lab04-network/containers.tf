@@ -67,5 +67,9 @@ resource "docker_container" "vm_spoke" {
     ipv4_address = "172.21.0.10"
   }
 
+  host {
+    host = "vm-hub"
+    ip   = "172.20.0.10"
+  }
   depends_on = [docker_container.router]
 }
