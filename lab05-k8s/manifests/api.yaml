@@ -12,8 +12,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: lab01:latest
-          imagePullPolicy: IfNotPresent
+          image: ghcr.io/gabrielegallenti/lab01-app:4ad99397e35330ac3b0f0125d2761d798194586a
           ports:
             - containerPort: 8000
           resources:
